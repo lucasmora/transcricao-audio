@@ -38,15 +38,18 @@ python ditado.py
 
 **Provedores e Modelos**
 ------------------------
-Na barra superior da janela há dois seletores:
+Na barra superior da janela há três seletores:
 1. **Provedor** – lista os provedores configurados em `PROVIDERS` (Groq, Mistral).
 2. **Modelo** – é preenchido automaticamente com os modelos de transcrição do provedor escolhido.
+3. **Idioma** – define o idioma da transcrição: **Português** (padrão) ou **Inglês**.
 
 - O dropdown de modelo exibe apenas os modelos relevantes para transcrição de áudio
   (contêm "whisper" no Groq e "voxtral" na Mistral).
 - Para esconder um modelo da lista, adicione o nome dele em `EXCLUDED_MODELS` no código.
 - Se a chamada à API de listagem falhar (ex.: sem internet), o programa usa os
   modelos de fallback definidos em `FALLBACK_MODELS`.
+- Para adicionar um novo idioma, basta incluir uma entrada em `LANGUAGES`
+  (nome exibido no dropdown -> código usado na API, ex.: `"Espanhol": "es"`).
 - Para adicionar um novo provedor, basta incluir uma entrada em `PROVIDERS`
   (com `env_key`, `kind` e `model_filter` opcional) e implementar o ramo
   correspondente nas funções `create_client` e `transcrever`.
@@ -61,6 +64,7 @@ Na barra superior da janela há dois seletores:
 6. **Excluir** → Limpa a caixa. 
 7. **Sempre no topo** → Mantém a janela sempre na frente.
 8. O status (*Pronto*, *Gravando…*, *Transcrevendo…*) aparece na label na parte superior.
+9. **Idioma** → escolha entre *Português* (padrão) e *Inglês* para a transcrição.
 
 **Hot‑key**
 ----------
@@ -72,8 +76,7 @@ Na barra superior da janela há dois seletores:
 - `DEFAULT_MODEL`: troque para outro modelo Whisper suportado.
 - `COLAR_AUTO`: predefina no código para auto‑colar por padrão.
 - Cores de interface: editável via variáveis `BG`, `FG`, `ACCENT`, `ACCENT_REC`.
-- `SAMPLE_RATE`: 16000 Hz; altere se desejar taxa de amostragem diferente (ex.: 48000).
-
+- `SAMPLE_RATE`: 16000 Hz; altere se desejar taxa de amostragem diferente (ex.: 48000).- `LANGUAGES`: mapeia os idiomas exibidos no dropdown para o código usado na API.
 **Notas Técnicas**
 -----------------
 - O áudio é salvo em memória (`BytesIO`) e enviado como arquivo *audio.wav* para a API.

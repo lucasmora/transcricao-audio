@@ -18,6 +18,12 @@ HOTKEY = "ctrl+\\"
 SAMPLE_RATE = 16000
 DEFAULT_MODEL = "whisper-large-v3-turbo"
 
+# Idiomas suportados: nome exibido no dropdown -> código usado na API
+LANGUAGES = {
+    "Português": "pt",
+    "Inglês": "en",
+}
+
 # Provedores: nome -> configuração
 PROVIDERS = {
     "Groq": {
@@ -51,6 +57,7 @@ recording = []
 is_recording = False
 selected_provider = "Groq"
 selected_model = DEFAULT_MODEL
+selected_language = "pt"
 # Configurações de Cores
 BG = "#1f1f1f"
 FG = "#f2f2f2"
@@ -118,13 +125,13 @@ def transcrever(provider_name, client, audio_bytes, model):
         response = client.audio.transcriptions.create(
             file=("audio.wav", audio_bytes),
             model=model,
-            language="pt",
+            language=selected_language,
         )
     elif cfg["kind"] == "mistral":
         response = client.audio.transcriptions.complete(
             model=model,
             file={"content": audio_bytes, "file_name": "audio.wav"},
-            language="pt",
+            language=selected_language,
         )
     else:
         raise RuntimeError(f"Provedor não suportado: {provider_name}")
@@ -209,6 +216,14 @@ tk.Label(frame_seletores, text="Modelo:", bg=BG, fg=FG).pack(side="left", padx=(
 cmb_model = ttk.Combobox(frame_seletores, state="readonly", width=24)
 cmb_model.pack(side="left", padx=(0, 10))
 
+# Seletor de idioma em linha própria, abaixo dos demais
+frame_idioma = tk.Frame(root, bg=BG)
+frame_idioma.pack(pady=(0, 5))
+tk.Label(frame_idioma, text="Idioma:", bg=BG, fg=FG).pack(side="left", padx=(10, 2))
+cmb_lang = ttk.Combobox(frame_idioma, values=list(LANGUAGES.keys()), state="readonly", width=10)
+cmb_lang.set("Português")
+cmb_lang.pack(side="left", padx=(0, 10))
+
 
 def on_provider_change(event=None):
     global selected_provider, client
@@ -228,8 +243,14 @@ def on_model_change(event=None):
     selected_model = cmb_model.get()
 
 
+def on_language_change(event=None):
+    global selected_language
+    selected_language = LANGUAGES[cmb_lang.get()]
+
+
 cmb_provider.bind("<<ComboboxSelected>>", on_provider_change)
 cmb_model.bind("<<ComboboxSelected>>", on_model_change)
+cmb_lang.bind("<<ComboboxSelected>>", on_language_change)
 
 # Checkbox "Sempre no topo"
 sempre_no_topo = tk.BooleanVar(value=False)
