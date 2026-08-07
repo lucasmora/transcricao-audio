@@ -31,8 +31,8 @@ Ditado – Vídeo para Texto
 cd ~\Ditado
 python -m pip install --upgrade pip
 pip install numpy sounddevice keyboard groq mistralai
-set GROQ_API_KEY=***
-set MISTRAL_API_KEY=***
+set GROQ_API_KEY=SUA_CHAVE_AQUI
+set MISTRAL_API_KEY=SUA_CHAVE_AQUI
 python ditado.py
 ```
 
@@ -106,3 +106,4 @@ MIT. Sinta‑se livre para usar, modificar e distribuir, contanto que essa licen
 ---------------------
 - **1.0.0** – Versão inicial.
 - **1.1.0** – Hot‑key `Ctrl+\\`, colagem automática e integração `keyboard`.
+- **2.0.0** – Dropdowns de seleção de provedor, modelo e idioma; suporte ao provedor Mistral (Voxtral); lista de fallback de modelos.
