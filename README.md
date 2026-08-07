@@ -1,9 +1,20 @@
-Ditado – Vídeo para Texto
+Ditado – Áudio para Texto
 ================================================
+
+<div align="center">
+
+# 🎤 Ditado – Áudio para Texto
+
+![Python](https://img.shields.io/badge/Python-3.7%2B-3776AB?style=flat-square&logo=python&logoColor=white)
+![Tkinter](https://img.shields.io/badge/Tkinter-GUI-5B5BD6?style=flat-square)
+![Licença](https://img.shields.io/badge/Licen%C3%A7a-MIT-22c55e?style=flat-square)
+![Versão](https://img.shields.io/badge/Vers%C3%A3o-2.0.0-blue?style=flat-square)
+
+</div>
 
 **Descrição**
 -------------
-*Ditado.py* é um aplicativo de gravação e transcrição de áudio em tempo real com suporte a provedores de STT, como Groq e Mistral.
+*Ditado.py* é um aplicativo de gravação e transcrição de áudio com suporte a provedores de STT, como Groq e Mistral.
 - **Groq** – modelo Whisper‑Large‑V3‑Turbo (padrão).
 - **Mistral** – modelo Voxtral Mini Transcribe (`voxtral-mini-latest`).
 - Grava áudio do microfone com taxa de amostragem de 16 kHz.
@@ -59,9 +70,9 @@ Na barra superior da janela há três seletores:
 1. **Abrir** → o script inicia uma janela na borda inferior direita.
 2. **Idioma** → escolha entre *Português* (padrão) ou *Inglês* para a transcrição.
 3. O status (*Pronto*, *Gravando…*, *Transcrevendo…*) aparece na label na parte superior.
-4. **Clique** no botão *🎤 Gravar* ou pressione *Ctrl+\\*. 
+4. **Clique** no botão *🎤 Gravar* ou pressione `Ctrl + \`. 
 5. Fale. 
-6. Com o botão de gravação novamente você interrompe; o texto aparece na caixa e, se a opção “Colar automaticamente” estiver marcada, o trecho é copiado para a área de transferência e simulado `Ctrl+V`.
+6. Com o botão de gravação novamente você interrompe; o texto aparece na caixa e, se a opção “Colar automaticamente” estiver marcada, o trecho é copiado para a área de transferência e simulado `Ctrl + V`.
 7. **Copiar** → Copia todo o texto. 
 8. **Excluir** → Limpa a caixa. 
 9. **Sempre no topo** → Mantém a janela sempre na frente.
@@ -81,8 +92,8 @@ Na barra superior da janela há três seletores:
 **Threading e Responsividade**
 ------------------------------
 O script usa *threads* para manter a interface responsiva:
-- `threading.Thread` roda a função de paragem/transcrição em background, mantendo a GUI sem bloquear.
-- A biblioteca `keyboard` cria internamente uma thread para escutar o hot‑key `Ctrl+\\` sem interferir no loop principal do Tkinter.
+- `threading.Thread` roda a função de gravação/transcrição em background, mantendo a GUI sem bloquear.
+- A biblioteca `keyboard` cria internamente uma thread para escutar o hot‑key `Ctrl + \` sem interferir no loop principal do Tkinter.
 
 **Notas Técnicas**
 -----------------
@@ -105,5 +116,5 @@ MIT. Sinta‑se livre para usar, modificar e distribuir, contanto que essa licen
 **Versões/Alterações**
 ---------------------
 - **1.0.0** – Versão inicial.
-- **1.1.0** – Hot‑key `Ctrl+\\`, colagem automática e integração `keyboard`.
+- **1.1.0** – Hot‑key `Ctrl + \`, colagem automática e integração `keyboard`.
 - **2.0.0** – Dropdowns de seleção de provedor, modelo e idioma; suporte ao provedor Mistral (Voxtral); lista de fallback de modelos.
