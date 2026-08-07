@@ -84,7 +84,6 @@ Na barra superior da janela há três seletores:
 **Personalizações**
 -------------------
 - `DEFAULT_MODEL`: troque para outro modelo suportado.
-- `COLAR_AUTO`: predefina no código para auto‑colar por padrão.
 - Cores de interface: editável via variáveis `BG`, `FG`, `ACCENT`, `ACCENT_REC`.
 - `SAMPLE_RATE`: 16000 Hz; altere se desejar taxa de amostragem diferente (ex.: 48000).
 - `LANGUAGES`: mapeia os idiomas exibidos no dropdown para o código usado na API.
@@ -98,7 +97,6 @@ O script usa *threads* para manter a interface responsiva:
 **Notas Técnicas**
 -----------------
 - O áudio é salvo em memória (`BytesIO`) e enviado como arquivo *audio.wav* para a API.
-- Concatenação de blocos de áudio usa `np.concatenate`.
 - `keyboard` ouve a hot‑key em thread isolada; assim a GUI não bloqueia.
 - O `tkinter` usa `after(100, process_queue)` para consumir eventos da fila de UI de forma não‑bloqueante.
 - Carregamento de TTS ou plugins não incluídos; este script apenas grava e transcreve.

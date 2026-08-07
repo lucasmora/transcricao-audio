@@ -6,12 +6,10 @@ import os
 import wave
 import threading
 import queue
-import numpy as np
 import sounddevice as sd
 import keyboard
 import tkinter as tk
 import tkinter.ttk as ttk
-import time
 from groq import Groq
 # ----------------------------------------------------------------
 HOTKEY = "ctrl+\\"
@@ -112,8 +110,9 @@ def carregar_modelos(provider):
 
 def audio_callback(indata, frames, time_info, status):
     if is_recording:
-        recording.append(indata.copy())
-stream = None
+        recording.append(bytes(indata))
+        
+
 def transcrever(provider_name, client, audio_bytes, model):
     """Transcreve o áudio usando o cliente do provedor selecionado.
 
@@ -154,13 +153,13 @@ def stop_and_transcribe():
     if not recording:
         ui_queue.put(("status", "Pronto"))
         return
-    audio_data = np.concatenate(recording, axis=0)
+    audio_bytes = b"".join(chunk.tobytes() for chunk in recording)
     buf = io.BytesIO()
     with wave.open(buf, "wb") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(SAMPLE_RATE)
-        wf.writeframes(audio_data.tobytes())
+        wf.writeframes(audio_bytes)
     
     try:
         if client is None:
@@ -329,8 +328,7 @@ def process_queue():
                         root.clipboard_clear()
                         root.clipboard_append(trecho)
                         root.update()
-                        time.sleep(0.1) # Pequeno delay para garantir que o clipboard processe
-                        keyboard.press_and_release("ctrl+v")
+                        root.after(100, lambda: keyboard.press_and_release("ctrl+v"))
     except queue.Empty: pass
     root.after(100, process_queue)
 keyboard.add_hotkey(HOTKEY, toggle_recording)
