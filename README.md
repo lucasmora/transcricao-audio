@@ -1,9 +1,11 @@
-Ditado Groq – Vídeo para Texto
+Ditado – Vídeo para Texto
 ================================================
 
 **Descrição**
 -------------
-*Ditado.py* é um aplicativo de gravação e transcrição de áudio em tempo real que usa a API Whisper‑Large‑V3‑Turbo do Groq.
+*Ditado.py* é um aplicativo de gravação e transcrição de áudio em tempo real com suporte a múltiplos provedores:
+- **Groq** – modelo Whisper‑Large‑V3‑Turbo (padrão).
+- **Mistral** – modelo Voxtral Mini Transcribe (`voxtral-mini-latest`).
 - Grava áudio do microfone (16 kHz).
 - Transcreve em Português.
 - Interface Tkinter simples com botão de gravação + hot‑key *Ctrl+\\*.
@@ -16,7 +18,11 @@ Ditado Groq – Vídeo para Texto
   ```bash
   pip install numpy sounddevice keyboard groq
   ```
-- Variável de ambiente `GROQ_API_KEY` com sua chave Groq.
+- Para usar o provedor **Mistral**, instale também o SDK oficial:
+  ```bash
+  pip install mistralai
+  ```
+- Variável de ambiente `GROQ_API_KEY` (provedor Groq) ou `MISTRAL_API_KEY` (provedor Mistral) com sua chave.
 - Microfone funcional; em Windows verifique drivers e permissões de áudio.
 
 **Instalação (para Windows)**
@@ -26,8 +32,24 @@ cd ~\Ditado
 python -m pip install --upgrade pip
 pip install numpy sounddevice keyboard groq
 set GROQ_API_KEY=***
+set MISTRAL_API_KEY=***
 python ditado.py
 ```
+
+**Provedores e Modelos**
+------------------------
+Na barra superior da janela há dois seletores:
+1. **Provedor** – lista os provedores configurados em `PROVIDERS` (Groq, Mistral).
+2. **Modelo** – é preenchido automaticamente com os modelos de transcrição do provedor escolhido.
+
+- O dropdown de modelo exibe apenas os modelos relevantes para transcrição de áudio
+  (contêm "whisper" no Groq e "voxtral" na Mistral).
+- Para esconder um modelo da lista, adicione o nome dele em `EXCLUDED_MODELS` no código.
+- Se a chamada à API de listagem falhar (ex.: sem internet), o programa usa os
+  modelos de fallback definidos em `FALLBACK_MODELS`.
+- Para adicionar um novo provedor, basta incluir uma entrada em `PROVIDERS`
+  (com `env_key`, `kind` e `model_filter` opcional) e implementar o ramo
+  correspondente nas funções `create_client` e `transcrever`.
 
 **Uso**
 ------

@@ -1,5 +1,5 @@
 """
-Ditado por voz usando a API do Groq - Versão padrão (com bordas).
+Ditado por voz - suporta vários provedores de transcrição (Groq, Mistral).
 """
 import io
 import os
@@ -14,7 +14,6 @@ import tkinter.ttk as ttk
 import time
 from groq import Groq
 # ----------------------------------------------------------------
-API_KEY = os.getenv("GROQ_API_KEY", "")
 HOTKEY = "ctrl+\\"
 SAMPLE_RATE = 16000
 DEFAULT_MODEL = "whisper-large-v3-turbo"
@@ -24,22 +23,26 @@ PROVIDERS = {
     "Groq": {
         "env_key": "GROQ_API_KEY",
         "kind": "groq",
-        # Filtro opcional: só modelos de transcrição de áudio
-        "audio_only": True,
+        # Filtro opcional: só modelos de transcrição de áudio (nome contém "whisper")
+        "model_filter": "whisper",
     },
-    # Exemplo de futuro provedor (OpenAI):
-    # "OpenAI": {"env_key": "OPENAI_API_KEY", "kind": "openai", "audio_only": True},
+    "Mistral": {
+        "env_key": "MISTRAL_API_KEY",
+        "kind": "mistral",
+        # Filtro opcional: só modelos de transcrição de áudio (nome contém "voxtral")
+        "model_filter": "voxtral",
+    },
 }
 
 # Modelos a OCULTAR do dropdown - edite manualmente quando quiser esconder um modelo
 EXCLUDED_MODELS = {
-    # "whisper-large-v3",           # exemplo: versão antiga
-    "distil-whisper-large-v3-en" # exemplo: não quer exibir o distil
+    "distil-whisper-large-v3-en"
 }
 
 # Lista de fallback (usada se a chamada à API falhar)
 FALLBACK_MODELS = {
     "Groq": ["whisper-large-v3-turbo", "whisper-large-v3"],
+    "Mistral": ["voxtral-mini-latest", "voxtral-mini-2507"],
 }
 # ----------------------------------------------------------------
 client = None  # recriado quando o provedor muda
@@ -63,7 +66,14 @@ def create_client(provider_name):
         raise RuntimeError(f"Variável de ambiente {cfg['env_key']} não configurada")
     if cfg["kind"] == "groq":
         client = Groq(api_key=api_key)
-    # elif cfg["kind"] == "openai": ... (futuro)
+    elif cfg["kind"] == "mistral":
+        try:
+            from mistralai.client import Mistral
+        except ImportError:
+            raise RuntimeError(
+                "Pacote 'mistralai' não instalado. Execute: pip install mistralai"
+            )
+        client = Mistral(api_key=api_key)
     return client
 
 
@@ -76,8 +86,9 @@ def list_models(provider_name):
         modelos = [m.id for m in c.models.list()]
     except Exception:
         modelos = FALLBACK_MODELS.get(provider_name, [])
-    if cfg.get("audio_only"):
-        modelos = [m for m in modelos if "whisper" in m]
+    filtro = cfg.get("model_filter")
+    if filtro:
+        modelos = [m for m in modelos if filtro in m]
     return [m for m in modelos if m not in EXCLUDED_MODELS]
 
 
@@ -96,6 +107,30 @@ def audio_callback(indata, frames, time_info, status):
     if is_recording:
         recording.append(indata.copy())
 stream = None
+def transcrever(provider_name, client, audio_bytes, model):
+    """Transcreve o áudio usando o cliente do provedor selecionado.
+
+    Retorna o texto transcrito. Cada provedor tem seu jeito de chamar a API,
+    mas todos devolvem um objeto com o campo `.text`.
+    """
+    cfg = PROVIDERS[provider_name]
+    if cfg["kind"] == "groq":
+        response = client.audio.transcriptions.create(
+            file=("audio.wav", audio_bytes),
+            model=model,
+            language="pt",
+        )
+    elif cfg["kind"] == "mistral":
+        response = client.audio.transcriptions.complete(
+            model=model,
+            file={"content": audio_bytes, "file_name": "audio.wav"},
+            language="pt",
+        )
+    else:
+        raise RuntimeError(f"Provedor não suportado: {provider_name}")
+    return response.text
+
+
 def stop_and_transcribe():
     global is_recording, stream
     if not is_recording: return
@@ -123,21 +158,15 @@ def stop_and_transcribe():
     try:
         if client is None:
             create_client(selected_provider)
-        response = client.audio.transcriptions.create(
-            file=("audio.wav", buf.getvalue()),
-            model=selected_model,
-            language="pt"
-        )
-        ui_queue.put(("text", response.text))
+        response = transcrever(selected_provider, client, buf.getvalue(), selected_model)
+        ui_queue.put(("text", response))
     except Exception as e:
         ui_queue.put(("text", f"\n[Erro]: {str(e)}"))
     
     ui_queue.put(("status", "Pronto"))
-    print("Pronto.")
 def toggle_recording():
     global is_recording, stream
     if is_recording:
-        print("Parando gravação...", end=" ")
         threading.Thread(target=stop_and_transcribe, daemon=True).start()
     else:
         recording.clear()
@@ -148,16 +177,15 @@ def toggle_recording():
         ui_queue.put(("record_state", True))
 # Interface
 root = tk.Tk()
-root.title("Ditado Groq")
+root.title("Ditado")
 root.configure(bg=BG)
 
 # Posiciona a janela no canto inferior direito da tela
 LARGURA, ALTURA = 400, 300
-MARGEM = 100  # espaço reservado para a barra de tarefas / margem da tela
 largura_tela = root.winfo_screenwidth()
 altura_tela = root.winfo_screenheight()
 pos_x = largura_tela - LARGURA - 20
-pos_y = altura_tela - ALTURA - MARGEM
+pos_y = altura_tela - ALTURA - 100  # Deixa margem de 100 para a altura da tela (barra de tarefas)
 root.geometry(f"{LARGURA}x{ALTURA}+{pos_x}+{pos_y}")
 # Estilo escuro para os comboboxes (ttk não herda bg/fg do Tk)
 style = ttk.Style()
