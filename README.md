@@ -111,6 +111,14 @@ O script usa *threads* para manter a interface responsiva:
 --------
 MIT. Sinta‑se livre para usar, modificar e distribuir, contanto que essa licença seja mantida.
 
+**Como este projeto foi desenvolvido**
+-----------------------------------------
+- Definição dos requisitos e funcionalidades por mim.
+- Desenvolvimento assistido por ferramentas de IA.
+- Revisão e adaptação manual de todo o código gerado.
+- Testes e validação das funcionalidades.
+- Documentação escrita e mantida por mim.
+
 **Versões/Alterações**
 ---------------------
 - **1.0.0** – Versão inicial.
