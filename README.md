@@ -14,9 +14,10 @@ Ditado – Áudio para Texto
 
 **Descrição**
 -------------
-*Ditado.py* é um aplicativo de gravação e transcrição de áudio com suporte a provedores de STT, como Groq e Mistral.
+*Ditado.py* é um aplicativo de gravação e transcrição de áudio com suporte a provedores de STT, como Groq, Mistral e local (faster-whisper).
 - **Groq** – modelo Whisper‑Large‑V3‑Turbo (padrão).
 - **Mistral** – modelo Voxtral Mini Transcribe (`voxtral-mini-latest`).
+- **Local (faster-whisper)** – modelos `tiny`, `base`, `small`, `medium` (CPU only, roda offline).
 - Grava áudio do microfone com taxa de amostragem de 16 kHz.
 - Transcreve em Português e Inglês (configurável na interface).
 - Interface Tkinter simples com botão de gravação + hot‑key `Ctrl + \`.
@@ -33,6 +34,11 @@ Ditado – Áudio para Texto
   ```bash
   pip install mistralai
   ```
+- Para usar o provedor **Local (faster-whisper)**:
+  ```bash
+  pip install faster-whisper
+  ```
+  Modelos disponíveis: `tiny`, `base`, `small`, `medium` (CPU only, roda offline, sem chave de API).
 - Variável de ambiente `GROQ_API_KEY` (provedor Groq) ou `MISTRAL_API_KEY` (provedor Mistral) com sua chave.
 - Microfone funcional; em Windows verifique as configurações de áudio.
 
@@ -41,7 +47,7 @@ Ditado – Áudio para Texto
 ```cmd
 cd ~\Ditado
 python -m pip install --upgrade pip
-pip install numpy sounddevice keyboard groq mistralai
+pip install numpy sounddevice keyboard groq mistralai faster-whisper
 set GROQ_API_KEY=SUA_CHAVE_AQUI
 set MISTRAL_API_KEY=SUA_CHAVE_AQUI
 python ditado.py
@@ -50,12 +56,13 @@ python ditado.py
 **Provedores e Modelos**
 ------------------------
 Na barra superior da janela há três seletores:
-1. **Provedor** – lista os provedores configurados em `PROVIDERS` (Groq, Mistral).
+1. **Provedor** – lista os provedores configurados em `PROVIDERS` (Groq, Mistral, Local (faster-whisper)).
 2. **Modelo** – é preenchido automaticamente com os modelos de transcrição do provedor escolhido.
 3. **Idioma** – define o idioma da transcrição: **Português** (padrão) ou **Inglês**.
 
 - O dropdown de modelo exibe apenas os modelos relevantes para transcrição de áudio
   (contêm "whisper" no Groq e "voxtral" na Mistral).
+- **Local (faster-whisper)**: mostra `tiny`, `base`, `small`, `medium` (CPU only, offline).
 - Para esconder um modelo da lista, adicione o nome dele em `EXCLUDED_MODELS` no código.
 - Se a chamada à API de listagem falhar (ex.: sem internet), o programa usa os
   modelos de fallback definidos em `FALLBACK_MODELS`.

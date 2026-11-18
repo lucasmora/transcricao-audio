@@ -36,12 +36,20 @@ PROVIDERS = {
         # Filtro opcional: só modelos de transcrição de áudio (nome contém "voxtral")
         "model_filter": "voxtral",
     },
+    "Local (faster-whisper)": {
+        "env_key": None,
+        "kind": "local",
+        "model_filter": None,
+    },
 }
 
 # Modelos a OCULTAR do dropdown - edite manualmente quando quiser esconder um modelo
 EXCLUDED_MODELS = {
     "distil-whisper-large-v3-en"
 }
+
+# Modelos locais (faster-whisper) - apenas CPU
+LOCAL_MODELS = ["tiny", "base", "small", "medium"]
 
 # Lista de fallback (usada se a chamada à API falhar)
 FALLBACK_MODELS = {
@@ -66,6 +74,15 @@ ACCENT_REC = "#e04141"
 def create_client(provider_name):
     global client
     cfg = PROVIDERS[provider_name]
+    if cfg["kind"] == "local":
+        try:
+            from faster_whisper import WhisperModel
+        except ImportError:
+            raise RuntimeError(
+                "Pacote 'faster-whisper' não instalado. Execute: pip install faster-whisper"
+            )
+        client = None
+        return client
     api_key = os.getenv(cfg["env_key"], "")
     if not api_key:
         raise RuntimeError(f"Variável de ambiente {cfg['env_key']} não configurada")
@@ -84,6 +101,8 @@ def create_client(provider_name):
 
 def list_models(provider_name):
     cfg = PROVIDERS[provider_name]
+    if provider_name == "Local (faster-whisper)":
+        return LOCAL_MODELS
     if not os.getenv(cfg["env_key"], ""):
         raise RuntimeError(f"Variável de ambiente {cfg['env_key']} não configurada")
     try:
@@ -132,6 +151,12 @@ def transcrever(provider_name, client, audio_bytes, model):
             file={"content": audio_bytes, "file_name": "audio.wav"},
             language=selected_language,
         )
+    elif cfg["kind"] == "local":
+        from faster_whisper import WhisperModel
+        whisper_model = WhisperModel(model, device="cpu", compute_type="int8")
+        buf = io.BytesIO(audio_bytes)
+        segments, _ = whisper_model.transcribe(buf, language=selected_language)
+        return " ".join([seg.text for seg in segments])
     else:
         raise RuntimeError(f"Provedor não suportado: {provider_name}")
     return response.text
@@ -153,7 +178,7 @@ def stop_and_transcribe():
     if not recording:
         ui_queue.put(("status", "Pronto"))
         return
-    audio_bytes = b"".join(chunk.tobytes() for chunk in recording)
+    audio_bytes = b"".join(recording)
     buf = io.BytesIO()
     with wave.open(buf, "wb") as wf:
         wf.setnchannels(1)
@@ -162,7 +187,8 @@ def stop_and_transcribe():
         wf.writeframes(audio_bytes)
     
     try:
-        if client is None:
+        cfg = PROVIDERS[selected_provider]
+        if cfg["kind"] != "local" and client is None:
             create_client(selected_provider)
         response = transcrever(selected_provider, client, buf.getvalue(), selected_model)
         ui_queue.put(("text", response))
